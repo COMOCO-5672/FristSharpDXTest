@@ -2,6 +2,7 @@
 using SharpDX.Mathematics.Interop;
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -83,7 +84,21 @@ namespace WpfApp
 
             device.ImmediateContext.Rasterizer.SetViewport(0, 0, (int)ActualWidth, (int)ActualHeight);
 
-            CompositionTarget.Rendering += CompositionTarget_Rendering;
+            var dispatcher = this.Dispatcher;
+
+            ThreadPool.QueueUserWorkItem((obj) =>
+            {
+                while (true)
+                {
+                    dispatcher?.Invoke(() =>
+                    {
+                        CompositionTarget_Rendering(null, null);
+                    });
+                    Thread.Sleep(10);
+                }
+            });  // 线程渲染滑块
+
+            //CompositionTarget.Rendering += CompositionTarget_Rendering; // 拖动时重新渲染,导致滑块速度播放变快
         }
 
         private void CompositionTarget_Rendering(object sender, EventArgs e)
