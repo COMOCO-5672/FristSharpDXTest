@@ -33,6 +33,14 @@ namespace WpfApp
 
         private D2D.RenderTarget _d2DRenderTarget;
 
+        private Thread _renderThread = null;
+
+        private bool _isFrist = true;
+
+        private volatile bool _isDispose = false;
+
+        private System.Windows.Threading.Dispatcher _dispather;
+
         #endregion
         public MainWindow()
         {
@@ -40,10 +48,74 @@ namespace WpfApp
 
             _d3D = KsyosqStmckfy;
 
+            _dispather = this.Dispatcher;
+
             this.Loaded += MainWindow_Loaded;
+
+            this.SizeChanged += MainWindow_SizeChanged;
+        }
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (!_isFrist)
+            {
+                _isDispose = true;
+                _renderThread?.Abort();
+                CreateRenderTarget();
+                _isDispose = false;
+                CreateThread();
+                //device.ImmediateContext.Rasterizer.SetViewport(0, 0, (int)ActualWidth, (int)ActualHeight);
+            }
+        }
+
+        private void OnRender()
+        {
+            CompositionTarget_Rendering(null, null);
+        }
+
+        private void CreateThread()
+        {
+            _renderThread = new Thread(() =>
+            {
+                while (true && !_isDispose)
+                {
+                    _dispather?.Invoke(() =>
+                    {
+                        OnRender();
+                    });
+                    Thread.Sleep(10);
+                }
+            });
+            _renderThread.Name = "OnRender";
+            _isDispose = false;
+            _renderThread.Start();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            var dispatcher = this.Dispatcher;
+
+            CreateRenderTarget();
+
+            CreateThread();
+            _isFrist = false;
+            //ThreadPool.QueueUserWorkItem((obj) =>
+            //{
+            //    while (true)
+            //    {
+            //        dispatcher?.Invoke(() =>
+            //        {
+            //            CompositionTarget_Rendering(null, null);
+            //        });
+            //        Thread.Sleep(10);
+            //    }
+            //});  // 线程渲染滑块
+
+            //CompositionTarget.Rendering += CompositionTarget_Rendering; // 拖动时重新渲染,导致滑块速度播放变快
+        }
+
+
+        private void CreateRenderTarget()
         {
             // 创建
             device = new D3D11.Device(DriverType.Hardware, D3D11.DeviceCreationFlags.BgraSupport);
@@ -73,7 +145,7 @@ namespace WpfApp
             var surface = renderTarget.QueryInterface<DXGI.Surface>();
 
             // 创建D2D工厂
-            var d2DFactory = new D2D.Factory(); 
+            var d2DFactory = new D2D.Factory();
 
             // 渲染属性
             var renderTargetProperties = new D2D.RenderTargetProperties(new D2D.PixelFormat(DXGI.Format.Unknown, D2D.AlphaMode.Premultiplied));
@@ -83,22 +155,6 @@ namespace WpfApp
             SetRenderTarget(renderTarget);
 
             device.ImmediateContext.Rasterizer.SetViewport(0, 0, (int)ActualWidth, (int)ActualHeight);
-
-            var dispatcher = this.Dispatcher;
-
-            ThreadPool.QueueUserWorkItem((obj) =>
-            {
-                while (true)
-                {
-                    dispatcher?.Invoke(() =>
-                    {
-                        CompositionTarget_Rendering(null, null);
-                    });
-                    Thread.Sleep(10);
-                }
-            });  // 线程渲染滑块
-
-            //CompositionTarget.Rendering += CompositionTarget_Rendering; // 拖动时重新渲染,导致滑块速度播放变快
         }
 
         private void CompositionTarget_Rendering(object sender, EventArgs e)
