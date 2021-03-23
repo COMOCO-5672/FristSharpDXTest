@@ -8,10 +8,54 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Image x:Name="DcwtTmmwvcr">
-            <Image.Source>
-                <interop:D3DImage x:Name="KsyosqStmckfy"></interop:D3DImage>
-            </Image.Source>
-        </Image>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <WrapPanel Grid.Row="0">
+            <TextBlock Width="10"/>
+            <TextBlock Text="通道号:" VerticalAlignment="Center" HorizontalAlignment="Center"></TextBlock>
+            <TextBox x:Name="tb" 
+                     Width="100"
+                     Height="30"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Text="{Binding ChannelId}"/>
+            <TextBlock Width="10"/>
+            <Button x:Name="btn"
+                    Width="100"
+                    Height="30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Command="{Binding PlayCommand}">播放</Button>
+        </WrapPanel>
+        <Grid Grid.Row="1">
+
+            <!--<ItemsControl x:Name="ItemsControl" ItemsSource="{Binding _playInfos}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.Template>
+                    <ControlTemplate>
+                        <local:PlayControl Background="Aquamarine"  ChannelID="{Binding Path=ChannelID}"/>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+            </ItemsControl>-->
+            <Image x:Name="DcwtTmmwvcr" Source="{Binding ImageSource}">
+                <!--<Image.Source>
+                    <interop:D3DImage x:Name="KsyosqStmckfy"></interop:D3DImage>
+                </Image.Source>-->
+            </Image>
+
+            <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                <WrapPanel>
+                    <TextBlock Foreground="Tomato" Text="fps:"/>
+                    <TextBlock  Foreground="Tomato" Text="{Binding Fps}"/>
+                </WrapPanel>
+            </Canvas>
+        </Grid>
     </Grid>
 </Window>

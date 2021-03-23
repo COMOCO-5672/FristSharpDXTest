@@ -46,13 +46,15 @@ namespace WpfApp
         {
             InitializeComponent();
 
-            _d3D = KsyosqStmckfy;
+            this.DataContext = new MainWindowVM();
 
-            _dispather = this.Dispatcher;
+            //_d3D = KsyosqStmckfy;
 
-            this.Loaded += MainWindow_Loaded;
+            //_dispather = this.Dispatcher;
 
-            this.SizeChanged += MainWindow_SizeChanged;
+            //this.Loaded += MainWindow_Loaded;
+
+            //this.SizeChanged += MainWindow_SizeChanged;
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
