@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Prism.Commands;
 using Prism.Mvvm;
 
@@ -46,7 +47,28 @@ namespace WpfApp
 
         private static D3DImageSource _d3D;
 
-        private List<int> _sessionList=new List<int>();
+        private List<int> _sessionList = new List<int>();
+
+        /// <summary>
+        /// 登录失败
+        /// </summary>
+        private volatile bool _loginFailed = false;
+
+        private Dispatcher _dispatcher { get; set; }
+
+        private object _locker = new object();
+
+        private Thread _renderThread;
+
+        private volatile bool _isStop = false;
+
+        private Thread _hwRenderThread;
+
+        private volatile bool _isStopHw = false;
+
+        private Timer _timer = null;
+
+        private Thread _restartThread;
 
         #endregion
 
@@ -54,6 +76,7 @@ namespace WpfApp
 
         public MainWindowVM()
         {
+            _dispatcher = Application.Current.Dispatcher;
             Init();
         }
 
@@ -98,108 +121,127 @@ namespace WpfApp
             //    _channelIDlist[i] = Convert.ToInt32(list[i]);
             //}
 
-            PlatformLoginInfo plateFormLoginInfo = new PlatformLoginInfo()
+            _dispatcher?.Invoke(() =>
             {
-                IP = "192.168.5.123",
-                Port = 81,
-                IsAuto = false,
-                UserName = "admin",
-                Password = "trkj@88888",
-                PlatformID = "8",
-                SocketType = SocketType.TCS_TCP,
-                PlatformName = "Leopard",
-                PlatformType = "leopard",
-            };
-
-            var login = new SDKHelper.LoginInfo()
-            {
-                ip = plateFormLoginInfo.IP,
-                port = plateFormLoginInfo.Port,
-                username = plateFormLoginInfo.UserName,
-                password = plateFormLoginInfo.Password,
-                st = SDKHelper.SocketType.TCS_TCP,
-                callback = new SDKHelper.ConnectionCallback() { Callback = connectionCallback }
-            };
-            LocalInfo.PlatformID = plateFormLoginInfo.PlatformID;
-
-            LocalInfo.LoginInfo = login;
-
-            //PlayInfos.Clear();
-            //foreach (int i in _channelIDlist)
-            //{
-            //    PlayInfos.Add(new PlayInfo()
-            //    {
-            //        ChannelID = i.ToString()
-            //    });
-            //}
-            //return;
-
-            var adapterInfo = AdapterHelper.GetAdapterInfo(Application.Current.MainWindow, Application.Current.MainWindow?.Width, Application.Current.MainWindow?.Height);
-
-            _connectID = SDKHelper.Login(plateFormLoginInfo.PlatformID, login);
-
-            _sessionList?.ForEach((session) =>
-            {
-                SDKHelper.InnerStopRealPlay(session);
-            });
-            _sessionList?.Clear();
-
-            _sessionID = SDKHelper.ProbeStream(_connectID, _connectID.ToString(), StreamType.Main, out StreamInfo streamInfo, CodecID.TCS_H265);
-
-            var v1 = SDKHelper.IsSupportDecodeByHW(out streamInfo);
-
-            if (v1 < 0)
-            {
-                Console.WriteLine($"[Error V1]{SDKHelper.GetLastError()}");
-            }
-            _d3D = new D3DImageSource();
-
-            _d3D?.InitDX9(streamInfo.width, streamInfo.height, adapterInfo.AdapterIndex);
-
-            ImageRenderCollection.Add(_d3D);
-
-            ImageSource = ImageRenderCollection[0].ImageSource;
-
-            _sessionID = SDKHelper.StartRealPlayByHW(_connectID, _channelId.ToString(), StreamType.Main, out StreamDetail streamDetail, CodecID.TCS_H265);
-
-            int v3 = 0;
-
-            ResD3D9[] _d3D9s = new ResD3D9[streamDetail.count];
-
-            char[] ch = new char[8];
-
-            for (int i = 0; i < _d3D9s.Length; i++)
-            {
-                _d3D9s[i].adapter = adapterInfo.OutputName;
-                _d3D9s[i].stream_id = streamDetail.rects[i].stream_id;
-                _d3D9s[i].res = ImageRenderCollection[0].GetSurfaceDX9().NativePointer;
-            }
-
-            //DLLHelper.add(1, _d3D9s, 1);
-
-            v3 = SDKHelper.HWCreateD3d9(_sessionID, _d3D9s, _d3D9s.Length);
-
-            if (v3 < 0)
-            {
-                Console.WriteLine($"[Error V3]{SDKHelper.GetLastError()}");
-            }
-
-            Thread _renderThread = new Thread(RenderThread);
-
-            ThreadPool.QueueUserWorkItem(obj =>
-            {
-                while (true)
+                PlatformLoginInfo plateFormLoginInfo = new PlatformLoginInfo()
                 {
-                    SDKHelper.HWRender(_sessionID, out long pts, out HWCurrentStatus status);
-                    Thread.Sleep(15);
+                    IP = "192.168.5.91",
+                    Port = 81,
+                    IsAuto = false,
+                    UserName = "admin",
+                    Password = "trkj@88888",
+                    PlatformID = "8",
+                    SocketType = SocketType.TCS_TCP,
+                    PlatformName = "Leopard",
+                    PlatformType = "leopard",
+                };
+
+                var login = new SDKHelper.LoginInfo()
+                {
+                    ip = plateFormLoginInfo.IP,
+                    port = plateFormLoginInfo.Port,
+                    username = plateFormLoginInfo.UserName,
+                    password = plateFormLoginInfo.Password,
+                    st = SDKHelper.SocketType.TCS_TCP,
+                    callback = new SDKHelper.ConnectionCallback() { Callback = connectionCallback }
+                };
+                LocalInfo.PlatformID = plateFormLoginInfo.PlatformID;
+
+                LocalInfo.LoginInfo = login;
+
+                //PlayInfos.Clear();
+                //foreach (int i in _channelIDlist)
+                //{
+                //    PlayInfos.Add(new PlayInfo()
+                //    {
+                //        ChannelID = i.ToString()
+                //    });
+                //}
+                //return;
+
+                var adapterInfo = AdapterHelper.GetAdapterInfo(Application.Current.MainWindow, Application.Current.MainWindow?.Width, Application.Current.MainWindow?.Height);
+
+                _connectID = SDKHelper.Login(plateFormLoginInfo.PlatformID, login);
+
+                //_sessionList?.ForEach((session) =>
+                //{
+                //    SDKHelper.InnerStopRealPlay(session);
+                //});
+                //_sessionList?.Clear();
+
+                var sessionID = 0;
+
+                _sessionID = SDKHelper.ProbeStream(_connectID, ChannelId, StreamType.Main, out StreamInfo streamInfo, CodecID.TCS_CODEC_UNKOWN);
+
+                var v1 = SDKHelper.IsSupportDecodeByHW(out streamInfo);
+
+                if (v1 < 0)
+                {
+                    Console.WriteLine($"[Error V1]{SDKHelper.GetLastError()}");
+                }
+
+                _d3D = new D3DImageSource();
+
+                _d3D?.InitDX9(streamInfo.width, streamInfo.height, adapterInfo.AdapterIndex);
+
+                lock (_locker)
+                {
+                    ImageRenderCollection.Clear();
+
+                    ImageRenderCollection.Add(_d3D);
+
+                    ImageSource = ImageRenderCollection[0].ImageSource;
+                }
+
+                _sessionID = SDKHelper.StartRealPlayByHW(_connectID, _channelId.ToString(), StreamType.Main, out StreamDetail streamDetail, CodecID.TCS_CODEC_UNKOWN);
+
+                int v3 = 0;
+
+                ResD3D9[] _d3D9s = new ResD3D9[streamDetail.count];
+
+                char[] ch = new char[8];
+
+                for (int i = 0; i < _d3D9s.Length; i++)
+                {
+                    _d3D9s[i].adapter = adapterInfo.OutputName;
+                    _d3D9s[i].stream_id = streamDetail.rects[i].stream_id;
+                    _d3D9s[i].res = ImageRenderCollection[0].GetSurfaceDX9().NativePointer;
+                }
+
+                sessionID = SDKHelper.ProbeStream(_connectID, ChannelId, StreamType.Main, out StreamInfo stream1, CodecID.TCS_CODEC_UNKOWN);
+                //DLLHelper.add(1, _d3D9s, 1);
+
+                v3 = SDKHelper.HWCreateD3d9(_sessionID, _d3D9s, _d3D9s.Length);
+
+                if (v3 < 0)
+                {
+                    Console.WriteLine($"[Error V3]{SDKHelper.GetLastError()}");
+                }
+                _renderThread = new Thread(RenderThread);
+
+                _renderThread.Name = "RenderThread";
+
+                _renderThread.Start();
+
+                _hwRenderThread = new Thread(HwRenderThread);
+
+                _hwRenderThread.Name = "HwRenderThread";
+
+                _hwRenderThread.Start();
+
+                _timer = new Timer(CalculateFPS, null, 0, 1000);
+
+                // 断线重连
+
+                if (_restartThread == null)
+                {
+                    _restartThread = new Thread(RestartThread);
+
+                    _restartThread.Name = "restartThread";
+
+                    _restartThread.Start();
                 }
             });
-
-            _renderThread.Name = "RenderThread";
-
-            _renderThread.Start();
-
-            Timer timer = new Timer(CalculateFPS, null, 0, 1000);
         }
 
         private void connectionCallback(int connectionId, SDKHelper.ConnectionNotify data, IntPtr pUserData)
@@ -212,7 +254,7 @@ namespace WpfApp
                     //重新连接
                     //Restart();
                     //标记平台登录失败，需要重新连接
-                    //loginFailed = true;
+                    _loginFailed = true;
                     //Logined = false;
                     break;
                 default:
@@ -221,23 +263,36 @@ namespace WpfApp
             }
         }
 
-
         /// <summary>
         /// 渲染线程
         /// </summary>
         void RenderThread()
         {
-            while (true)
+            while (!_isStop)
             {
-                foreach (var source in ImageRenderCollection)
+                lock (_locker)
                 {
-                    source.OnRender();
-                    FPSCount++;
+                    foreach (var source in ImageRenderCollection)
+                    {
+                        source.OnRender();
+                        FPSCount++;
+                    }
                 }
                 Thread.Sleep(10);
             }
         }
 
+        /// <summary>
+        /// 调用TRSDK渲染
+        /// </summary>
+        void HwRenderThread()
+        {
+            while (!_isStopHw)
+            {
+                SDKHelper.HWRender(_sessionID, out long pts, out HWCurrentStatus status);
+                Thread.Sleep(15);
+            }
+        }
         /// <summary>
         /// 计算FPS
         /// </summary>
@@ -265,6 +320,38 @@ namespace WpfApp
             }
         }
 
+        /// <summary>
+        /// 重连线程
+        /// </summary>
+        void RestartThread()
+        {
+            while (true)
+            {
+                if (_loginFailed)
+                {
+                    // 重连
+                    var stopSuc = SDKHelper.StopReceiveRealStream(_sessionID);
+                    if (!stopSuc)
+                    {
+                        Console.WriteLine("StopReceive error");
+                    }
+                    Console.WriteLine("LoginOut");
+                    var loginOut = SDKHelper.Logout(_connectID);
+                    Console.WriteLine(loginOut > 0 ? "退出成功" : "退出失败");
+
+                    _isStop = _isStopHw = true;
+
+                    _renderThread?.Join();
+                    _hwRenderThread?.Join();
+                    _loginFailed = false;
+
+                    _isStop = _isStopHw = false;
+                    Play();
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+            }
+        }
+
         #endregion
 
         #region 属性
@@ -288,7 +375,7 @@ namespace WpfApp
         /// <summary>
         /// 字典集合
         /// </summary>
-        private ConcurrentDictionary<string,D3DImageSource> _sources = new ConcurrentDictionary<string, D3DImageSource>();
+        private ConcurrentDictionary<string, D3DImageSource> _sources = new ConcurrentDictionary<string, D3DImageSource>();
 
         /// <summary>
         /// FPS
@@ -319,15 +406,15 @@ namespace WpfApp
 
         public ObservableCollection<PlayInfo> PlayInfos
         {
-            get { return _playInfos ?? (_playInfos = new ObservableCollection<PlayInfo>()); } 
+            get { return _playInfos ?? (_playInfos = new ObservableCollection<PlayInfo>()); }
             set
             {
-                _playInfos = value; 
+                _playInfos = value;
                 RaisePropertyChanged(nameof(PlayInfos));
-            } 
+            }
         }
 
-        private string _channelId = "";
+        private string _channelId = "170";
 
         private ObservableCollection<PlayInfo> _playInfos;
 
