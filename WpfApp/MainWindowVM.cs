@@ -121,11 +121,22 @@ namespace WpfApp
             //    _channelIDlist[i] = Convert.ToInt32(list[i]);
             //}
 
+
             _dispatcher?.Invoke(() =>
             {
+                //PlayInfos.Clear();
+                //foreach (int i in _channelIDlist)
+                //{
+                //    PlayInfos.Add(new PlayInfo()
+                //    {
+                //        ChannelID = i.ToString()
+                //    });
+                //}
+                //return;
+
                 PlatformLoginInfo plateFormLoginInfo = new PlatformLoginInfo()
                 {
-                    IP = "192.168.5.91",
+                    IP = "192.168.5.88",
                     Port = 81,
                     IsAuto = false,
                     UserName = "admin",
@@ -149,19 +160,8 @@ namespace WpfApp
 
                 LocalInfo.LoginInfo = login;
 
-                //PlayInfos.Clear();
-                //foreach (int i in _channelIDlist)
-                //{
-                //    PlayInfos.Add(new PlayInfo()
-                //    {
-                //        ChannelID = i.ToString()
-                //    });
-                //}
-                //return;
-
-                var adapterInfo = AdapterHelper.GetAdapterInfo(Application.Current.MainWindow, Application.Current.MainWindow?.Width, Application.Current.MainWindow?.Height);
-
                 _connectID = SDKHelper.Login(plateFormLoginInfo.PlatformID, login);
+                var adapterInfo = AdapterHelper.GetAdapterInfo(Application.Current.MainWindow, Application.Current.MainWindow?.Width, Application.Current.MainWindow?.Height);
 
                 //_sessionList?.ForEach((session) =>
                 //{
@@ -169,15 +169,19 @@ namespace WpfApp
                 //});
                 //_sessionList?.Clear();
 
-                var sessionID = 0;
+                var _sessionId = SDKHelper.ProbeStream(_connectID, ChannelId, StreamType.Main, out StreamInfo streamInfo, CodecID.TCS_CODEC_UNKOWN);
 
-                _sessionID = SDKHelper.ProbeStream(_connectID, ChannelId, StreamType.Main, out StreamInfo streamInfo, CodecID.TCS_CODEC_UNKOWN);
+                if (_sessionId < 0)
+                {
+                    goto error;
+                }
 
                 var v1 = SDKHelper.IsSupportDecodeByHW(out streamInfo);
 
                 if (v1 < 0)
                 {
                     Console.WriteLine($"[Error V1]{SDKHelper.GetLastError()}");
+                    goto error;
                 }
 
                 _d3D = new D3DImageSource();
@@ -195,6 +199,11 @@ namespace WpfApp
 
                 _sessionID = SDKHelper.StartRealPlayByHW(_connectID, _channelId.ToString(), StreamType.Main, out StreamDetail streamDetail, CodecID.TCS_CODEC_UNKOWN);
 
+                if (_sessionID < 0)
+                {
+                    goto error;
+                }
+
                 int v3 = 0;
 
                 ResD3D9[] _d3D9s = new ResD3D9[streamDetail.count];
@@ -208,7 +217,6 @@ namespace WpfApp
                     _d3D9s[i].res = ImageRenderCollection[0].GetSurfaceDX9().NativePointer;
                 }
 
-                sessionID = SDKHelper.ProbeStream(_connectID, ChannelId, StreamType.Main, out StreamInfo stream1, CodecID.TCS_CODEC_UNKOWN);
                 //DLLHelper.add(1, _d3D9s, 1);
 
                 v3 = SDKHelper.HWCreateD3d9(_sessionID, _d3D9s, _d3D9s.Length);
@@ -216,6 +224,7 @@ namespace WpfApp
                 if (v3 < 0)
                 {
                     Console.WriteLine($"[Error V3]{SDKHelper.GetLastError()}");
+                    goto error;
                 }
                 _renderThread = new Thread(RenderThread);
 
@@ -232,7 +241,7 @@ namespace WpfApp
                 _timer = new Timer(CalculateFPS, null, 0, 1000);
 
                 // 断线重连
-
+                
                 if (_restartThread == null)
                 {
                     _restartThread = new Thread(RestartThread);
@@ -240,6 +249,15 @@ namespace WpfApp
                     _restartThread.Name = "restartThread";
 
                     _restartThread.Start();
+                }
+                return;
+
+                error:
+                {
+                    var iStopRet = SDKHelper.StopReceiveRealStream(_sessionID);
+
+                    _loginFailed = true;
+                   
                 }
             });
         }
@@ -414,7 +432,7 @@ namespace WpfApp
             }
         }
 
-        private string _channelId = "170";
+        private string _channelId = "149";
 
         private ObservableCollection<PlayInfo> _playInfos;
 

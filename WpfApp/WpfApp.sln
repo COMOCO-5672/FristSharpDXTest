@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30907.101
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1401
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfApp", "WpfApp.csproj", "{6F9F6A5A-14C2-4F56-BE84-6E278E57EC57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RenderCore", "..\RenderCore\RenderCore.csproj", "{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{6F9F6A5A-14C2-4F56-BE84-6E278E57EC57}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6F9F6A5A-14C2-4F56-BE84-6E278E57EC57}.Release|x64.ActiveCfg = Release|x64
 		{6F9F6A5A-14C2-4F56-BE84-6E278E57EC57}.Release|x64.Build.0 = Release|x64
+		{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}.Debug|x64.Build.0 = Debug|Any CPU
+		{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}.Release|x64.ActiveCfg = Release|Any CPU
+		{C83DFD69-3A7A-43AF-8C4E-7405AA1A8A6F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
