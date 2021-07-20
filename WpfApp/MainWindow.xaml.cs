@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 using D2D = SharpDX.Direct2D1;
 using D3D11 = SharpDX.Direct3D11;
 using D3D9 = SharpDX.Direct3D9;
@@ -41,12 +42,24 @@ namespace WpfApp
 
         private System.Windows.Threading.Dispatcher _dispather;
 
+        private DispatcherTimer _dispatcherTimer;
+
         #endregion
         public MainWindow()
         {
             InitializeComponent();
 
-            this.DataContext = new MainWindowVM();
+            this.DataContext = new MainVM();
+
+            //_dispatcherTimer = new DispatcherTimer();
+
+            //_dispatcherTimer.Tick += _dispatcherTimer_Tick;
+
+            //_dispatcherTimer.Interval = TimeSpan.FromSeconds(1);
+
+            //_dispatcherTimer?.Start();
+
+            //this.DataContext = new MainWindowVM();
 
             //_d3D = KsyosqStmckfy;
 
@@ -55,6 +68,21 @@ namespace WpfApp
             //this.Loaded += MainWindow_Loaded;
 
             //this.SizeChanged += MainWindow_SizeChanged;
+        }
+
+        private void _dispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                Console.WriteLine("窗口宽度" + this.Width + "窗口高度" + this.Height);
+                Console.WriteLine("画布宽度" + this.DcwtTmmwvcr.Source.Width + "画布高度" + this.DcwtTmmwvcr.Source.Height);
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                //throw;
+            }
+           
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)

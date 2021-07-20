@@ -318,7 +318,7 @@ namespace WpfApp
         /// <param name="d3D9">d3d9信息</param>
         /// <param name="resSize"></param>
         /// <returns>成功返回TCSResult::Success，失败返回TCSResult::Failed</returns>
-        [DllImport(dllName, EntryPoint = "TCS_HWCreateD3d9",CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllName, EntryPoint = "TCS_HWCreateD3d9", CallingConvention = CallingConvention.Cdecl)]
         public static extern int HWCreateD3d9(int sessionId, ResD3D9[] d3D9, int resSize);
 
         /// <summary>
@@ -330,6 +330,32 @@ namespace WpfApp
         /// <returns>成功返回TCSResult::Success，失败返回TCSResult::Failed</returns>
         [DllImport(dllName, EntryPoint = "TCS_HWRender")]
         public static extern int HWRender(int sessionId, out long pts, out HWCurrentStatus currentStatus);
+
+        #endregion
+
+        #region RTSP Connect
+
+        /// <summary>
+        /// 打开RTSP直连地址
+        /// </summary>
+        /// <param name="clusterConfig">配置信息</param>
+        /// <param name="playPolicy">播放策略</param>
+        /// <param name="func">回调函数</param>
+        /// <param name="stream">视频流信息</param>
+        /// <returns>成功返回TCSResult::Success，失败返回TCSResult::Failed</returns>
+        [DllImport(dllName, EntryPoint = "TCS_StartRealPlayByUrl")]
+        public static extern int StartRealPlayByRTSP(out int connectId,
+                                                     PlayOption playOption,
+                                                     PlayPolicy playPolicy,
+                                                     DIRECTURL_ABNORMAL_CALLBACK func,
+                                                     out StreamDetail streamDetail,
+                                                     out StreamInfo_Desc streamInfoDesc,
+                                                     ADD_INFO_MEDIADATA_CALLBACK mediaData,
+                                                     IntPtr ptr);
+
+
+        [DllImport(dllName, EntryPoint = "TCS_RestartReceiveStream")]
+        public static extern int RestartReceiveStream(int sessionId, string url);
 
         #endregion
 
@@ -429,7 +455,7 @@ namespace WpfApp
             else
                 // TextLog.SaveError($"TCS_GetCameraList error, result={result}");
 
-            return null;
+                return null;
         }
 
         #endregion Devices
@@ -469,6 +495,9 @@ namespace WpfApp
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void MEDIADATA_CALLBACK(int sessionId, MediaData data, IntPtr userData);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void ADD_INFO_MEDIADATA_CALLBACK(int sessionId, MediaData data, HWCurrentStatus currentStatus, IntPtr userData);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void RAWDATA_CALLBACK(int sessionId, RawData data, IntPtr userData);

@@ -208,16 +208,12 @@ namespace WpfApp
 
                 ResD3D9[] _d3D9s = new ResD3D9[streamDetail.count];
 
-                char[] ch = new char[8];
-
                 for (int i = 0; i < _d3D9s.Length; i++)
                 {
                     _d3D9s[i].adapter = adapterInfo.OutputName;
                     _d3D9s[i].stream_id = streamDetail.rects[i].stream_id;
                     _d3D9s[i].res = ImageRenderCollection[0].GetSurfaceDX9().NativePointer;
                 }
-
-                //DLLHelper.add(1, _d3D9s, 1);
 
                 v3 = SDKHelper.HWCreateD3d9(_sessionID, _d3D9s, _d3D9s.Length);
 

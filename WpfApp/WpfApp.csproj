@@ -149,9 +149,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AdapterHelper.cs" />
+    <Compile Include="ChunkedRender.cs" />
     <Compile Include="D3DImageSource.cs" />
     <Compile Include="DLLHelper.cs" />
     <Compile Include="LocalInfo.cs" />
+    <Compile Include="MainVM.cs" />
     <Compile Include="MainWindowVM.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Platform.cs" />
@@ -216,7 +218,12 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\RenderCore\RenderCore.csproj">
+      <Project>{c83dfd69-3a7a-43af-8c4e-7405aa1a8a6f}</Project>
+      <Name>RenderCore</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Content Include="DLL\SlimDX.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

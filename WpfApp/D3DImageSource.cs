@@ -148,17 +148,21 @@ namespace WpfApp
                         this.imageSource.Dispatcher.Invoke(() => this.OnRender());
                     return;
                 }
+                if (!ImageSource.IsFrontBufferAvailable) return;
+
+                IntPtr pSurface = IntPtr.Zero;
+                ImageSource.Lock();
+                ImageSource.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _d3d9Device.GetBackBuffer(0, 0).NativePointer);
+                ImageSource.AddDirtyRect(imageSourceRect);
+                ImageSource.Unlock();
             }
             catch (Exception ex)
             {
                 // TextLog.SaveError(ex.Message);
             }
-
             //stopwatch.Restart();
 
-            ImageSource.Lock();
-            ImageSource.AddDirtyRect(imageSourceRect);
-            ImageSource.Unlock();
+           
 
             //stopwatch.Stop();
             //long spendtime = stopwatch.ElapsedMilliseconds;

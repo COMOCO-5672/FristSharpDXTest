@@ -29,7 +29,16 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Command="{Binding PlayCommand}">播放</Button>
+
+            <TextBlock Width="10"/>
+            <Button x:Name="StoPbtn"
+                    Width="100"
+                    Height="30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Command="{Binding StopCommand}">停止</Button>
         </WrapPanel>
+
         <Grid Grid.Row="1">
 
             <!--<ItemsControl x:Name="ItemsControl" ItemsSource="{Binding _playInfos}">
@@ -44,6 +53,7 @@
                     </ControlTemplate>
                 </ItemsControl.Template>
             </ItemsControl>-->
+            <!--Source="{Binding ImageSource}"-->
             <Image x:Name="DcwtTmmwvcr" Source="{Binding ImageSource}">
                 <!--<Image.Source>
                     <interop:D3DImage x:Name="KsyosqStmckfy"></interop:D3DImage>
