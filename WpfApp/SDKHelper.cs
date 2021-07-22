@@ -353,6 +353,11 @@ namespace WpfApp
                                                      ADD_INFO_MEDIADATA_CALLBACK mediaData,
                                                      IntPtr ptr);
 
+        [DllImport(dllName, EntryPoint = "TCS_StartGetFrame")]
+        public static extern int StartGetFrame(int sessionId,DECODE_CALLBACK cb);
+
+        [DllImport(dllName,EntryPoint = "TCS_StopGetFrame")]
+        public static extern int StopGetFrame();
 
         [DllImport(dllName, EntryPoint = "TCS_RestartReceiveStream")]
         public static extern int RestartReceiveStream(int sessionId, string url);
@@ -498,6 +503,9 @@ namespace WpfApp
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void ADD_INFO_MEDIADATA_CALLBACK(int sessionId, MediaData data, HWCurrentStatus currentStatus, IntPtr userData);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void DECODE_CALLBACK(int sessionId,MediaData data,int[] pitch, IntPtr userData);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void RAWDATA_CALLBACK(int sessionId, RawData data, IntPtr userData);

@@ -11,6 +11,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
+            <!--<RowDefinition Height="100"/>-->
         </Grid.RowDefinitions>
 
         <WrapPanel Grid.Row="0">
@@ -37,6 +38,20 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Command="{Binding StopCommand}">停止</Button>
+            <TextBlock Width="10"/>
+            <Button x:Name="StartGetFrame"
+                    Width="100"
+                    Height="30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Command="{Binding StartGetFrameCommand}">获取GPUYUV</Button>
+            <TextBlock Width="10"/>
+            <Button x:Name="StopGetFrame"
+                    Width="100"
+                    Height="30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Command="{Binding StopGetFrameCommand}">停止获取YUV</Button>
         </WrapPanel>
 
         <Grid Grid.Row="1">
@@ -67,5 +82,12 @@
                 </WrapPanel>
             </Canvas>
         </Grid>
+
+        <!--<Grid Grid.Row="2">
+            <Image x:Name="FrameYUVImage"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Source="{Binding YuvCallBackImageSource}"/>
+        </Grid>-->
     </Grid>
 </Window>
