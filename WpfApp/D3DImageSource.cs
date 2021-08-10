@@ -150,7 +150,6 @@ namespace WpfApp
                 }
                 if (!ImageSource.IsFrontBufferAvailable) return;
 
-                IntPtr pSurface = IntPtr.Zero;
                 ImageSource.Lock();
                 ImageSource.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _d3d9Device.GetBackBuffer(0, 0).NativePointer);
                 ImageSource.AddDirtyRect(imageSourceRect);

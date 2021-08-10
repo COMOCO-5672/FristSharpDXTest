@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:local="clr-namespace:WpfApp"
         xmlns:interop="clr-namespace:System.Windows.Interop;assembly=PresentationCore"
         mc:Ignorable="d"
@@ -39,6 +40,35 @@
                     VerticalAlignment="Center"
                     Command="{Binding StopCommand}">停止</Button>
             <TextBlock Width="10"/>
+            <Button x:Name="OpenImageEnhance"
+                    Width="100"
+                    Height="30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Command="{Binding OpenEnhanceCommand}">开启图像增强</Button>
+            <TextBlock Width="10"/>
+            <Button x:Name="CloseImageEnhance"
+                    Width="100"
+                    Height="30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Command="{Binding CloseEnhanceCommand}">关闭图像增强</Button>
+            <TextBlock Width="10"/>
+            <ComboBox x:Name="ComboBox"
+                      Width="100"
+                      Height="30"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      ItemsSource="{Binding EnhanceCollection}"
+                      DisplayMemberPath="Name"
+                      SelectedValue="ID">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding SelectComoBoxChangeCommand}" CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=ComboBox}}"></i:InvokeCommandAction>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
+
             <Button x:Name="StartGetFrame"
                     Width="100"
                     Height="30"

@@ -331,6 +331,12 @@ namespace WpfApp
         [DllImport(dllName, EntryPoint = "TCS_HWRender")]
         public static extern int HWRender(int sessionId, out long pts, out HWCurrentStatus currentStatus);
 
+        [DllImport(dllName, EntryPoint = "TCS_OpenImageEnhance")]
+        public static extern int OpenImageEnhance(int sessionId, string param, int opt_flg);
+
+        [DllImport(dllName, EntryPoint = "TCS_CloseImageEnhance")]
+        public static extern int CloseImageEnhance(int sessionId);
+
         #endregion
 
         #region RTSP Connect
@@ -354,9 +360,9 @@ namespace WpfApp
                                                      IntPtr ptr);
 
         [DllImport(dllName, EntryPoint = "TCS_StartGetFrame")]
-        public static extern int StartGetFrame(int sessionId,DECODE_CALLBACK cb);
+        public static extern int StartGetFrame(int sessionId, DECODE_CALLBACK cb);
 
-        [DllImport(dllName,EntryPoint = "TCS_StopGetFrame")]
+        [DllImport(dllName, EntryPoint = "TCS_StopGetFrame")]
         public static extern int StopGetFrame();
 
         [DllImport(dllName, EntryPoint = "TCS_RestartReceiveStream")]
@@ -505,7 +511,7 @@ namespace WpfApp
         public delegate void ADD_INFO_MEDIADATA_CALLBACK(int sessionId, MediaData data, HWCurrentStatus currentStatus, IntPtr userData);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void DECODE_CALLBACK(int sessionId,MediaData data,int[] pitch, IntPtr userData);
+        public delegate void DECODE_CALLBACK(int sessionId, MediaData data, int[] pitch, IntPtr userData);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void RAWDATA_CALLBACK(int sessionId, RawData data, IntPtr userData);
